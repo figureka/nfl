@@ -31,6 +31,7 @@ min_pbp2019 %>%
   summarise(count = n(),
             pass = sum(play_type == 'pass'),
             run = sum(play_type == 'run'))
+
 ```
 
 
