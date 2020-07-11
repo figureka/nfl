@@ -23,7 +23,8 @@ pbp2019 <- readRDS(url('https://raw.githubusercontent.com/guga31bb/nflfastR-data
 
 ```{r minnesota}
 min_pbp2019 <- pbp2019 %>%
-  filter(posteam == 'MIN')
+  filter(posteam == 'MIN') %>%
+  arrange(game_date, desc(game_seconds_remaining))
 
 min_pbp2019 %>%
   filter(!is.na(play_type)) %>%
@@ -31,7 +32,30 @@ min_pbp2019 %>%
   summarise(count = n(),
             pass = sum(play_type == 'pass'),
             run = sum(play_type == 'run'))
-
 ```
 
+Figure out what the most common play pattern is in the 3 downs before a punt
+
+```{r min punt preceeding plays}
+punts <- which(min_pbp2019$play_type == 'punt')
+third <- punts - 1
+second <- punts - 2
+first <- punts - 3
+three_downs <- c(first, second, third)
+min_pre_punt <- min_pbp2019[three_downs,] %>%
+  arrange(game_date, desc(game_seconds_remaining)) %>%
+  filter(play_type != 'no_play') %>% 
+  select(down, play_type)
+
+min_pre_punt_clean <- data.frame(first = c(min_pre_punt$play_type[seq(1,210,3)]),
+                                 second = c(min_pre_punt$play_type[seq(2,210,3)]),
+                                 third = c(min_pre_punt$play_type[seq(3,210,3)])) %>%
+  mutate(pattern = paste0(substring(first,1,1),
+                          substring(second,1,1),
+                          substring(third,1,1)))
+min_pre_punt_clean %>%
+  group_by(pattern) %>%
+  summarize(count = n())
+
+```
 
